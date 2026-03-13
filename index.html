@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart L3 NOC Cheat Sheet</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; background: #f7f7f7; }
+  h1 { color: #1a73e8; }
+  textarea { width: 100%; padding: 10px; margin: 10px 0; font-size: 14px; height: 120px; }
+  button { padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1a73e8; color: white; border: none; border-radius: 4px; }
+  .solution { margin-top: 20px; background: #fff; padding: 20px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  pre { white-space: pre-wrap; word-wrap: break-word; }
+</style>
+</head>
+<body>
+<h1>Smart L3 NOC Cheat Sheet</h1>
+<textarea id="problemInput" placeholder="Paste the ticket or problem description here..."></textarea>
+<button onclick="generateSolution()">Show Steps</button>
+
+<div class="solution" id="solutionDiv"></div>
+
+<script>
+  const nocGuide = [
+    { keywords: ["ONU ONLINE", "NO INTERNET"], title: "ONU ONLINE BUT NO INTERNET", steps: `Symptoms:
+- ONU Status: Online
+- Client cannot browse
+- No internet access
+
+Things to Check:
+1️⃣ Check MAC and IP Learning (AMS)
+2️⃣ Check VLAN Configuration (NCE) → Advanced → Service Port Info → Verify VLAN 10
+3️⃣ Check WAN Connection → Modify → ONU General VAS Profile
+4️⃣ Perform Remote Ping → Ask client to reboot modem if ping fails`},
+    
+    { keywords: ["ONU ONLINE", "NO MAC", "NO IP"], title: "ONU ONLINE BUT NO MAC / IP LEARNED", steps: `Symptoms:
+- ONU Online
+- No MAC address detected
+- No IP learned
+
+Possible Causes:
+- Missing VLAN
+- WAN not configured
+- Client router issue
+
+Solution:
+Check Service Port Configuration
+If missing:
+- Add VLAN 10
+- Tag Transform: Translate
+- VLAN ID: 10
+- Service Type: Multi Service VLAN
+- User VLAN: 10
+Apply correct traffic profile`},
+    
+    { keywords: ["ONU LOS", "LOSS OF SIGNAL"], title: "ONU LOS", steps: `Symptoms:
+- ONU Status: LOS
+- Device Offline
+- No optical signal
+
+Possible Causes:
+- Fiber cut
+- Loose fiber connector
+- Damaged fiber cable
+- NAP problem
+
+Action:
+➡ Endorse to SLR for onsite checking
+➡ If multiple clients affected, possible LCP issue`},
+
+    { keywords: ["INTERMITTENT", "DISCONNECT", "PACKET LOSS"], title: "ONU ONLINE BUT INTERMITTENT CONNECTION", steps: `Symptoms:
+- Internet randomly disconnects
+- Packet loss
+- Slow browsing
+
+Check Optical Parameters:
+- Open: NCE → ONU Optical Module Info
+- Check RX Power and BER
+
+Possible Causes:
+- High BER
+- Weak optical signal
+- Fiber bending
+
+Action:
+➡ Endorse for onsite fiber inspection`},
+
+    { keywords: ["MULTIPLE CLIENTS", "OFFLINE"], title: "MULTIPLE CLIENTS OFFLINE", steps: `Symptoms:
+- Several clients connected to same Frame/Slot/Port are offline
+
+Steps:
+1️⃣ Check Frame / Slot / Port
+2️⃣ Verify downtime → if same downtime, possible network outage
+3️⃣ Check RX Power of Online Clients
+
+Conclusions:
+- Offline clients same downtime + Online RX normal → NAP Down
+- Offline clients same downtime + Online RX low → LCP High Loss`},
+
+    { keywords: ["SLOW INTERNET"], title: "CLIENT CONNECTED BUT SLOW INTERNET", steps: `Symptoms:
+- Internet works but speed lower than plan
+
+Check Bandwidth Profile:
+- Advanced → Service Port Info → VLAN10
+- Verify Client BW vs Plan
+- Correct Traffic Profile if needed`},
+
+    { keywords: ["SELECTIVE BROWSING", "SOME WEBSITES"], title: "SELECTIVE BROWSING ISSUE", steps: `Symptoms:
+- Some websites load, others fail
+
+Steps:
+1️⃣ Ask client for public IP via IP Chicken
+2️⃣ Run Ping Test to affected site
+3️⃣ Run Traceroute
+4️⃣ Ask client to change DNS to 8.8.8.8 (Google DNS)`},
+
+    { keywords: ["VLAN MISSING"], title: "VLAN MISSING", steps: `Symptoms:
+- ONU Online
+- No internet
+- No IP learned
+
+Solution:
+- Add Service Port → Advanced → Service Port Info → Add
+- VLAN 10 Configuration
+- Tag Transform: Translate
+- VLAN ID: 10
+- Service Type: Multi Service VLAN
+- User VLAN: 10`},
+
+    { keywords: ["STATIC CLIENT", "NO INTERNET"], title: "STATIC CLIENT NO INTERNET", steps: `Symptoms:
+- Business client with Static IP
+- Cannot access internet
+
+Check Nokia Configuration:
+- Tools → Cut Through
+- Check bandwidth profile → show qos bandwidth-profile
+- Verify upload/download profile
+- Check VLAN and Static IP`},
+
+    { keywords: ["MODEM NOT RESPONDING"], title: "CLIENT MODEM NOT RESPONDING", steps: `Symptoms:
+- ONU online in system
+- Cannot ping device
+
+Solution:
+➡ Ask client to reboot modem
+➡ Wait 3–5 minutes before testing again`}
+  ];
+
+  function generateSolution() {
+    const input = document.getElementById('problemInput').value.toUpperCase();
+    const solutionDiv = document.getElementById('solutionDiv');
+
+    let found = null;
+    for (const scenario of nocGuide) {
+      if (scenario.keywords.some(kw => input.includes(kw))) {
+        found = scenario;
+        break;
+      }
+    }
+
+    solutionDiv.innerHTML = found 
+      ? `<h2>${found.title}</h2><pre>${found.steps}</pre>` 
+      : "<pre>No matching scenario found. Please check your input or try different keywords.</pre>";
+  }
+</script>
+</body>
+</html>
